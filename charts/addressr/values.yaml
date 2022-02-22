@@ -1,0 +1,199 @@
+# Default values for addressr.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: stockpay1/sc-address-service
+  # TODO: pin to pull if not exist and not latest tag
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets:
+- name: dockerhub-stockpay1
+nameOverride: ""
+fullnameOverride: ""
+
+cronjob:
+  enabled: true
+  schedule: "0 5 */90 * *"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    # treat as a microservice
+    nginx.ingress.kubernetes.io/rewrite-target: /addresses
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+addressr:
+  elasticsearch:
+    # TODO: this needs to be dynamically generated using include "addressr.fullname"
+    host: addressr-elasticsearch
+    password: "elastic"
+    port: "9200"
+    protocol: "http"
+    username: "elastic"
+
+addressLoader:
+  image: "stockpay1/sc-address-service-loader"
+  imagePullPolicy: "Always"
+  imagePullSecrets:
+  - name: dockerhub-stockpay1
+  # job or deploymentContainer
+  jobType: job
+  env:
+    nodeOptions: "--max_old_space_size=8196"
+    elasticHost: addressr-elasticsearch
+    elasticPort: 9200
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+elasticsearch:
+  # Hard means that by default pods will only be scheduled if there are enough nodes for them
+  # and that they will never end up on the same node. Setting this to soft will do this "best effort"
+  antiAffinity: "hard"
+  # By default this will make sure two pods don't end up on the same node
+  # Changing this to a region would allow you to spread pods across regions
+  antiAffinityTopologyKey: "kubernetes.io/hostname"
+  # https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-health.html#request-params wait_for_status
+  clusterHealthCheckParams: "wait_for_status=green&timeout=1s"
+  clusterName: "elasticsearch"
+  esMajorVersion: ""
+  extraInitContainers: []
+  # - name: do-something
+  #   image: busybox
+  #   command: ['do', 'something']
+  httpPort: 9200
+  image: "docker.elastic.co/elasticsearch/elasticsearch"
+  imageTag: "7.14.2"
+  imagePullPolicy: "IfNotPresent"
+  # additionals labels
+  labels:
+    app.kubernetes.io/instance: addressr-elasticsearch
+    app.kubernetes.io/name: addressr-elasticsearch
+  # The service that non master groups will try to connect to when joining the cluster
+  # This should be set to clusterName + "-" + nodeGroup for your master group
+  masterService: ""
+  # This is the node affinity settings as defined in
+  # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity-beta-feature
+  nodeAffinity: {}
+  nodeGroup: "master"
+  persistence:
+    enabled: false
+    labels:
+      # Add default labels for the volumeClaimTemplate of the StatefulSet
+      enabled: false
+    annotations: {}
+  protocol: http
+  rbac:
+    create: false
+    serviceAccountAnnotations: {}
+    serviceAccountName: ""
+    automountToken: true
+  readinessProbe:
+    failureThreshold: 3
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    successThreshold: 3
+    timeoutSeconds: 5
+  resources:
+    limits:
+      memory: 1134Mi
+  replicas: 1
+  # Elasticsearch roles that will be applied to this nodeGroup
+  # These will be set as environment variables. E.g. node.roles=master
+  # https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-node.html#node-roles
+  roles:
+    - master
+    - data
+    - data_content
+    - data_hot
+    - data_warm
+    - data_cold
+    - ingest
+    - ml
+    - remote_cluster_client
+    - transform
+  # Disable it to use your own elastic-credential Secret.
+  secret:
+    enabled: true
+    # generated randomly if not defined
+    #password: ""
+    password: elastic
+  service:
+    type: ClusterIP
+    port: 9200
+  sysctlInitContainer:
+    enabled: true
+  sysctlVmMaxMapCount: 262144
+  transportPort: 9300
+  volumeClaimTemplate:
+    accessModes: ["ReadWriteOnce"]
+    resources:
+      requests:
+        storage: 30Gi

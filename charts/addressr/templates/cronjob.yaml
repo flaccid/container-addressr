@@ -1,0 +1,36 @@
+{{- if .Values.cronjob.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  schedule: "{{ .Values.cronjob.schedule }}"
+  successfulJobsHistoryLimit: 0
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: {{ .Chart.Name }}
+        spec:
+{{- if .Values.addressLoader.imagePullSecrets }}
+          imagePullSecrets:
+{{ toYaml .Values.addressLoader.imagePullSecrets | indent 13 }}
+{{- end }}
+          containers:
+          - name: {{ .Chart.Name }}-address-loader
+            image: {{ .Values.addressLoader.image }}
+            imagePullPolicy: {{ .Values.addressLoader.imagePullPolicy }}
+            env:
+              - name: ELASTIC_HOST
+                value: "{{ .Values.addressLoader.env.elasticHost }}"
+              - name: ELASTIC_PORT
+                value: "{{ .Values.addressLoader.env.elasticPort }}"
+              - name: NODE_OPTIONS
+                value: "{{ .Values.addressLoader.env.nodeOptions }}"
+            resources:
+              {{- toYaml .Values.addressLoader.resources | nindent 16 }}
+          restartPolicy: OnFailure
+{{- end }}

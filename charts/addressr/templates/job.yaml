@@ -1,0 +1,34 @@
+{{- if eq .Values.addressLoader.jobType "job" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  # forgive it only once
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+{{- if .Values.addressLoader.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.addressLoader.imagePullSecrets | indent 7 }}
+{{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.addressLoader.image }}"
+        imagePullPolicy: {{ .Values.addressLoader.imagePullPolicy }}
+        env:
+        - name: ELASTIC_HOST
+          value: "{{ .Values.addressLoader.env.elasticHost }}"
+        - name: ELASTIC_PORT
+          value: "{{ .Values.addressLoader.env.elasticPort }}"
+        - name: NODE_OPTIONS
+          value: "{{ .Values.addressLoader.env.nodeOptions }}"
+        resources:
+          {{- toYaml .Values.addressLoader.resources | nindent 12 }}
+      restartPolicy: OnFailure
+{{- end }}

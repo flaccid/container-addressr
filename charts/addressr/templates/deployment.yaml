@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "addressr.fullname" . }}
+  labels:
+    {{- include "addressr.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "addressr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "addressr.selectorLabels" . | nindent 8 }}
+        app: addressr
+        version: 0.0.1
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "addressr.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+{{- if eq .Values.addressLoader.jobType "deploymentContainer" }}
+        - name: {{ .Chart.Name }}-service-loader
+          image: "{{ .Values.addressLoader.image }}"
+          imagePullPolicy: {{ .Values.addressLoader.imagePullPolicy }}
+          env:
+          - name: ELASTIC_HOST
+            value: "{{ .Values.addressLoader.env.elasticHost }}"
+          - name: ELASTIC_PORT
+            value: "{{ .Values.addressLoader.env.elasticPort }}"
+          - name: NODE_OPTIONS
+            value: "{{ .Values.addressLoader.env.nodeOptions }}"
+{{- end }}
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: ADDRESSR_INDEX_BACKOFF
+            value: '1000'
+          - name: ADDRESSR_INDEX_BACKOFF_INCREMENT
+            value: '1000'
+          - name: ADDRESSR_INDEX_BACKOFF_MAX
+            value: '10000'
+          - name: ADDRESSR_INDEX_TIMEOUT
+            value: '30s'
+          - name: ELASTIC_HOST
+            value: {{ .Values.addressr.elasticsearch.host }}
+          - name: ELASTIC_PORT
+            value: '{{ .Values.addressr.elasticsearch.port }}'
+          - name: ELASTIC_PASSWORD
+            value: "{{ .Values.addressr.elasticsearch.password }}"
+          - name: ELASTIC_PROTOCOL
+            value: "{{ .Values.addressr.elasticsearch.protocol }}"
+          - name: ELASTIC_USERNAME
+            value: "{{ .Values.addressr.elasticsearch.username }}"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
