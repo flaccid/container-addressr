@@ -34,5 +34,5 @@ spec:
                 value: "{{ .Values.addressLoader.env.nodeOptions }}"
             resources:
               {{- toYaml .Values.addressLoader.resources | nindent 16 }}
-          restartPolicy: OnFailure
+          restartPolicy: {{ .Values.addressLoader.restartPolicy }}
 {{- end }}
