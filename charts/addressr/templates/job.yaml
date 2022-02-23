@@ -21,13 +21,15 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.addressLoader.image }}"
         imagePullPolicy: {{ .Values.addressLoader.imagePullPolicy }}
+        command:
+          - /usr/local/bin/addressr-loader
         env:
-        - name: ELASTIC_HOST
-          value: "{{ .Values.addressLoader.env.elasticHost }}"
-        - name: ELASTIC_PORT
-          value: "{{ .Values.addressLoader.env.elasticPort }}"
-        - name: NODE_OPTIONS
-          value: "{{ .Values.addressLoader.env.nodeOptions }}"
+          - name: ELASTIC_HOST
+            value: "{{ .Values.addressLoader.env.elasticHost }}"
+          - name: ELASTIC_PORT
+            value: "{{ .Values.addressLoader.env.elasticPort }}"
+          - name: NODE_OPTIONS
+            value: "{{ .Values.addressLoader.env.nodeOptions }}"
         resources:
           {{- toYaml .Values.addressLoader.resources | nindent 12 }}
       restartPolicy: OnFailure

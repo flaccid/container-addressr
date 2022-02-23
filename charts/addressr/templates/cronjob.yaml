@@ -23,6 +23,8 @@ spec:
           - name: {{ .Chart.Name }}-address-loader
             image: {{ .Values.addressLoader.image }}
             imagePullPolicy: {{ .Values.addressLoader.imagePullPolicy }}
+            command:
+              - /usr/local/bin/addressr-loader
             env:
               - name: ELASTIC_HOST
                 value: "{{ .Values.addressLoader.env.elasticHost }}"
