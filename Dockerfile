@@ -1,4 +1,4 @@
-FROM node
+FROM node:17-alpine3.14
 ENV ADDRESSR_INDEX_TIMEOUT="30s"
 ENV ADDRESSR_INDEX_BACKOFF="1000"
 ENV ADDRESSR_INDEX_BACKOFF_INCREMENT="1000"
@@ -8,5 +8,8 @@ ENV ELASTIC_HOST="host.docker.internal"
 ENV ELASTIC_USERNAME=
 ENV ELASTIC_PASSWORD=
 ENV ELASTIC_PROTOCOL=
-RUN npm install @mountainpass/addressr -g
-CMD ["/usr/local/bin/addressr-server"]
+ENV NODE_ENV=production
+RUN apk add --no-cache dumb-init && \
+    npm install @mountainpass/addressr -g
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["addressr-server"]
