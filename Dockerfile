@@ -12,4 +12,4 @@ ENV NODE_ENV=production
 RUN apk add --no-cache dumb-init && \
     npm install @mountainpass/addressr -g
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["addressr-server"]
+CMD ["addressr-server-2"]
