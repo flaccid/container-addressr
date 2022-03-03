@@ -35,7 +35,7 @@ spec:
         {{ $key }}: {{ $value | quote }}
         {{- end }}
     {{- end }}
-    {{- with .Values.persistence.annotations  }}
+    {{- with .Values.elasticsearch.persistence.annotations  }}
       annotations:
 {{ toYaml . | indent 8 }}
     {{- end }}
