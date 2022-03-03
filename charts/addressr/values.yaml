@@ -98,6 +98,9 @@ addressLoader:
   # job or deploymentContainer
   jobType: job
   restartPolicy: OnFailure
+  #podAnnotations: {}
+  podAnnotations:
+    sidecar.istio.io/inject: "false"
   env:
     nodeOptions: "--max_old_space_size=8196"
     elasticHost: addressr-elasticsearch

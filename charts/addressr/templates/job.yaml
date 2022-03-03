@@ -10,6 +10,10 @@ spec:
   backoffLimit: 2
   template:
     metadata:
+      {{- with .Values.addressLoader.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
         app: {{ .Chart.Name }}
     spec:

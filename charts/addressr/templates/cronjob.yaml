@@ -12,6 +12,10 @@ spec:
     spec:
       template:
         metadata:
+          {{- with .Values.addressLoader.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           labels:
             app: {{ .Chart.Name }}
         spec:
