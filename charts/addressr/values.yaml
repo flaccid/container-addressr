@@ -1,11 +1,7 @@
-# Default values for addressr.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
 
 image:
-  repository: stockpay1/sc-address-service
+  repository: flaccid/addressr
   # TODO: pin to pull if not exist and not latest tag
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -95,7 +91,7 @@ addressr:
     username: "elastic"
 
 addressLoader:
-  image: "stockpay1/sc-address-service-loader"
+  image: "flaccid/addressr"
   imagePullPolicy: "Always"
   imagePullSecrets:
   - name: dockerhub-stockpay1
