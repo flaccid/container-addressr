@@ -123,6 +123,7 @@ elasticsearch:
   # https://www.elastic.co/guide/en/elasticsearch/reference/current/cluster-health.html#request-params wait_for_status
   clusterHealthCheckParams: "wait_for_status=green&timeout=1s"
   clusterName: "elasticsearch"
+  enabled: true
   esMajorVersion: ""
   extraInitContainers: []
   # - name: do-something

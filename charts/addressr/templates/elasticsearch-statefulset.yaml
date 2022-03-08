@@ -1,4 +1,4 @@
----
+{{- if .Values.elasticsearch.enabled -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -382,3 +382,4 @@ spec:
 {{ toYaml .Values.elasticsearch.extraContainers | indent 6 }}
       {{- end }}
       {{- end }}
+{{- end }}
